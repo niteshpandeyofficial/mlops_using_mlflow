@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/aws_document_practlicals/mlopwithaws/mlruns/0/f49ecbca220c45aba2ae4d1b27a7f587/artifacts
+end_time: 1651037530248
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: f49ecbca220c45aba2ae4d1b27a7f587
+run_uuid: f49ecbca220c45aba2ae4d1b27a7f587
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1651037516420
+status: 3
+tags: []
+user_id: nites
