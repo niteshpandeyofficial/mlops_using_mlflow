@@ -36,6 +36,9 @@ def main(alpha,l1_ratio):
     y=df.quality
 
     x_train,x_test,y_train,y_test=train_test_split(x,y,random_state=123)
+
+    uri="http://127.0.0.1:5000"
+    mlflow.set_tracking_uri(uri)
     with mlflow.start_run():
 
         lr=ElasticNet(alpha=alpha,l1_ratio=l1_ratio,random_state=42)
@@ -60,7 +63,7 @@ def main(alpha,l1_ratio):
             print(inp)
             if inp=='Y':
                 print('before path')
-                runs=os.path.join(from_root(),'mlruns/')
+                runs=os.path.join(from_root(),'artifacts/')
                 #runs='D:\\aws_document_practlicals\\mlopwithaws\\mlruns'
                 print('after path')
                 print(runs)
