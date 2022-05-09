@@ -1,62 +1,62 @@
 import os
+import mlflow
+import argparse
 import numpy as np
 import pandas as pd
-import argparse
+import mlflow.sklearn 
+from sklearn import datasets
 from from_root import from_root
-from sklearn.metrics import mean_squared_error,mean_absolute_error,r2_score
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import ElasticNet
 from urllib.parse import urlparse
 from utils.sagemaker_integration import upload
-
-import mlflow
-import mlflow.sklearn 
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score,mean_absolute_error ,mean_squared_error,r2_score
 
 
 def get_data():
-    URL="http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
     try:
-        data=pd.read_csv(URL,sep=";")
-        return data
+        boston = datasets.load_boston()
+        features = pd.DataFrame(boston.data,columns=boston.feature_names)
+        targets = boston.target
+        return features,targets
     
     except Exception as e:
         raise e
 
-def evaluate(y_test,pred):
-    rmse=np.sqrt(mean_squared_error(y_test,pred))
-    mae=mean_absolute_error(y_test,pred)
-    r2=r2_score(y_test,pred)
+def evaluate(y_test,predict):
+    rmse=np.sqrt(mean_squared_error(y_test,predict))
+    mae=mean_absolute_error(y_test,predict)
+    r2=r2_score(y_test,predict)
 
     return rmse,mae,r2
 
-def main(alpha,l1_ratio):
-    df=get_data()
-    x=df.drop('quality',axis=1)
-    y=df.quality
+def main(max_depth,n_estimators,min_samples_split):
+    features,targets=get_data()
+    x_train,x_test,y_train,y_test=train_test_split(features,targets,random_state=123,test_size=0.30)
 
-    x_train,x_test,y_train,y_test=train_test_split(x,y,random_state=123)
-
-    uri="http://127.0.0.1:5000"
-    mlflow.set_tracking_uri(uri)
+ #   uri="http://127.0.0.1:5000"
+ #   mlflow.set_tracking_uri(uri)
     with mlflow.start_run():
+        rf=RandomForestRegressor()
+        rf.fit(x_train,y_train)
+        predict=rf.predict(x_test)
 
-        lr=ElasticNet(alpha=alpha,l1_ratio=l1_ratio,random_state=42)
-        lr.fit(x_train,y_train)
-        pred=lr.predict(x_test)
-
-        rmse,mae,r2=evaluate(y_test,pred)
+        rmse,mae,r2=evaluate(y_test,predict)
         
-        print(f'elasticnet parameter : alpha:{alpha} , l1_ratio:{l1_ratio}')
-        print(f'elasticnet metrics : rmse:{rmse} , mae:{mae},r2:{r2}')
+        # print(f'elasticnet parameter : alpha:{alpha} , l1_ratio:{l1_ratio}')
+        # print(f'elasticnet metrics : rmse:{rmse} , mae:{mae},r2:{r2}')
         
-        mlflow.log_param("alpha",alpha)
-        mlflow.log_param("l1_ratio",l1_ratio)
+        mlflow.log_param("max_depth",max_depth)
+        mlflow.log_param("n_estimators",n_estimators)
+        mlflow.log_param("min_samples_split",min_samples_split)
 
         mlflow.log_metric("rmse",rmse)
         mlflow.log_metric("mae",mae)
         mlflow.log_metric("r2",r2)
-        mlflow.sklearn.log_model(lr,"model")
+        mlflow.sklearn.log_model(rf,"model")
 
         try:
             inp=input("Push Model to S3(Y or N):")
@@ -79,10 +79,11 @@ def main(alpha,l1_ratio):
 
 if __name__=="__main__":
     args=argparse.ArgumentParser()
-    args.add_argument("--alpha","-a",type=float,default=0.5)
-    args.add_argument("--l1_ratio","-l1",type=float,default=0.5)
+    args.add_argument("--max_depth","-d",type=float,default=29)
+    args.add_argument("--n_estimators","-n",type=float,default=50)
+    args.add_argument("--min_samples_split","-s",type=float,default=5)
     parsed_args=args.parse_args()
     try:
-        main(alpha=parsed_args.alpha,l1_ratio=parsed_args.l1_ratio)
+        main(max_depth=parsed_args.max_depth,n_estimators=parsed_args.n_estimators,min_samples_split=parsed_args.min_samples_split)
     except Exception as e:
         raise e

@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/aws_document_practlicals/mlopwithaws_sagemakerintegration/mlruns/0/8ac9e0c17288408c9c9475a624854689/artifacts
+end_time: 1652098585002
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: 8ac9e0c17288408c9c9475a624854689
+run_uuid: 8ac9e0c17288408c9c9475a624854689
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1652098490886
+status: 3
+tags: []
+user_id: nites
